@@ -65,9 +65,9 @@ class Edrone():
 
         # initial setting of Kp, Kd and ki for [roll, pitch, yaw]. eg: self.Kp[2] corresponds to Kp value in yaw axis
         # after tuning and computing corresponding PID parameters, change the parameters
-        self.Kp = [131, 31, 3]
-        self.Ki = [131, 31, 3]
-        self.Kd = [131, 31, 3]
+        self.Kp = [0, 0, 0]
+        self.Ki = [0, 0, 0]
+        self.Kd = [0, 0, 0]
         # -----------------------Add other required variables for pid here ----------------------------------------------
         #
         self.prev_error= [0, 0, 0]
