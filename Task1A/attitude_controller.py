@@ -98,7 +98,7 @@ class Edrone():
         self.pwm_pub = rospy.Publisher('/edrone/pwm', prop_speed, queue_size=1)
         self.roll_error = rospy.Publisher('std_msgs/roll_error',Float32,queue_size=1)
         self.pitch_error = rospy.Publisher('std_msgs/pitch_error',Float32,queue_size=1)
-        self.yaw_error = rospy.Publisher('std_msgs/yaw_error',Float32,queue_size=1)        
+        self.yaw_error = rospy.Publisher('std_msgs/yaw_error',Float32,queue_size=1)
         # ------------------------Add other ROS Publishers here-----------------------------------------------------
 
         # -----------------------------------------------------------------------------------------------------------
@@ -211,16 +211,6 @@ class Edrone():
         self.pitch_error.publish(self.out_pitch)
         self.yaw_error.publish(self.out_yaw)
 
-        #Step 6 Compute PWM
-        # Front = Throttle + PitchPID - YawPID
-        # Back = Throttle - PitchPID - YawPID
-        # Left = Throttle + RollPID + YawPID
-        # Right = Throttle - RollPID + YawPID
-
-        # self.pwm_cmd.prop1=self.throttle_pwm + self.out_pitch - self.out_yaw #Front
-        # self.pwm_cmd.prop2=self.throttle_pwm - self.out_roll  + self.out_yaw #Right
-        # self.pwm_cmd.prop3=self.throttle_pwm - self.out_pitch - self.out_yaw #Back
-        # self.pwm_cmd.prop4=self.throttle_pwm + self.out_roll  + self.out_yaw #Left
 
         self.pwm_cmd.prop1=self.throttle_pwm - self.out_roll - self.out_yaw - self.out_pitch
         self.pwm_cmd.prop2=self.throttle_pwm - self.out_roll + self.out_yaw + self.out_pitch
@@ -229,7 +219,7 @@ class Edrone():
 
         #Step 7 Limit the values (NEEDS CODE OPTIMIZATION! @MANOHAR)
 
-        def clamp(n, minn = self.min_value, maxn = self.max_value):
+        def clamp(n, minn = self.min_values[0], maxn = self.max_values[0]):
             if n < minn:
                 return minn
             elif n > maxn:
@@ -237,10 +227,10 @@ class Edrone():
             else:
                 return n
 
-        self.pwm_cmd.prop1 = clamp(self.pwm_cmd.prop1)
-        self.pwm_cmd.prop2 = clamp(self.pwm_cmd.prop2)
-        self.pwm_cmd.prop3 = clamp(self.pwm_cmd.prop3)
-        self.pwm_cmd.prop4 = clamp(self.pwm_cmd.prop4)        
+        self.pwm_cmd.prop1 = clamp(self.pwm_cmd.prop1, self.min_values[0], self.max_values[0])
+        self.pwm_cmd.prop2 = clamp(self.pwm_cmd.prop2, self.min_values[1], self.max_values[1])
+        self.pwm_cmd.prop3 = clamp(self.pwm_cmd.prop3, self.min_values[2], self.max_values[2])
+        self.pwm_cmd.prop4 = clamp(self.pwm_cmd.prop4, self.min_values[3], self.max_values[3])
 
 
         #Step 8
