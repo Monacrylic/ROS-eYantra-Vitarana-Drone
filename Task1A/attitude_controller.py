@@ -212,10 +212,10 @@ class Edrone():
         self.yaw_error.publish(self.out_yaw)
 
 
-        self.pwm_cmd.prop1=self.throttle_pwm - self.out_roll - self.out_yaw - self.out_pitch
-        self.pwm_cmd.prop2=self.throttle_pwm - self.out_roll + self.out_yaw + self.out_pitch
-        self.pwm_cmd.prop3=self.throttle_pwm + self.out_roll - self.out_yaw + self.out_pitch
-        self.pwm_cmd.prop4=self.throttle_pwm + self.out_roll + self.out_yaw - self.out_pitch
+        self.pwm_cmd.prop1=self.throttle_pwm - self.out_roll - self.out_yaw + self.out_pitch
+        self.pwm_cmd.prop2=self.throttle_pwm - self.out_roll + self.out_yaw - self.out_pitch
+        self.pwm_cmd.prop3=self.throttle_pwm + self.out_roll - self.out_yaw - self.out_pitch
+        self.pwm_cmd.prop4=self.throttle_pwm + self.out_roll + self.out_yaw + self.out_pitch
 
         #Step 7 Limit the values (NEEDS CODE OPTIMIZATION! @MANOHAR)
 
