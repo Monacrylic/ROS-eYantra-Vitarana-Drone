@@ -27,7 +27,7 @@ class Edrone():
 
         # Required GPS setpoint
         #(latitude, longitude, altitude)
-        self.drone_gps_setpoint = [0.0, 0.0, 1]
+        self.drone_gps_setpoint = [0.0, 0.0, 3]
 
         # RPY setpoint correction term
         #This term is aded to the setpoint for RPY and throttle
@@ -45,8 +45,19 @@ class Edrone():
 
         # Equilibrium value
 
-        self.cmd_equlibrium_value= 1500
+        self.cmd_equilibrium_value= 1500
 
+        #
+        self.throttle_pid_error= [0.0, 0.0, 0.0]
+
+        #kp, ki , kd
+        self.throttle_pid= [0.0, 0.0, 0.0]
+
+        #Throttle previous error
+        self.throttle_prev_error= 0.0
+
+        #total error
+        self.total_pid_error= 0.0
         #Drone Command
 
         self.drone_command= edrone_cmd()
@@ -57,11 +68,17 @@ class Edrone():
 
         # Subscriptions----------------------------------------------------------
         rospy.Subscriber('/edrone/gps', NavSatFix, self.drone_gps_callback)
+        rospy.Subscriber('/pid_tuning_altitude', PidTune, self.altitude_pid_callback)
         #------------------------------------------------------------------------
 
         # Publications-----------------------------------------------------------
         self.edrone_cmd_pub = rospy.Publisher('/drone_command', edrone_cmd ,queue_size=1)
         #------------------------------------------------------------------------
+
+    def altitude_pid_callback(self,msg):
+        self.throttle_pid[0]=msg.Kp * 0.06
+        self.throttle_pid[1]=msg.Ki * 0.008
+        self.throttle_pid[2]=msg.Kd * 0.3
 
     def drone_gps_callback(self, msg):
 
@@ -76,7 +93,27 @@ class Edrone():
             self.position_error[i]= self.drone_gps_setpoint[i] - self.drone_gps_coordinates[i]
 
 
-        # 2. Calculate correction terms
+        # 2. Calculate Throttle PID error
+
+        #Proportional error
+        self.throttle_pid_error[0]= self.position_error[2]
+
+        #Integral error
+
+        # Derivative error
+        self.throttle_pid_error[2]= self.position_error[2]- self.throttle_prev_error
+
+
+
+
+        # 3. Calculate correction terms
+
+        # Deal with throttle first
+        self.total_pid_error= self.throttle_pid[0] * self.throttle_pid_error[0] + self.throttle_pid[2] * self.throttle_pid_error[2]
+        self.drone_command.rcThrottle= self.cmd_equilibrium_value + self.total_pid_error
+
+        print(self.total_pid_error);
+
 
         def clamp(n, minn, maxn):
             if n < minn:
@@ -86,6 +123,8 @@ class Edrone():
             else:
                 return n
 
+
+
         #Roll
         self.drone_cmd_correction_term[0]= clamp(self.position_error[0]*10 ,-1 * self.max_setpoint_variation[0], self.max_setpoint_variation[0])
         #Pitch
@@ -94,14 +133,14 @@ class Edrone():
         self.drone_cmd_correction_term[3]= clamp(self.position_error[2]*100 ,-1 * self.max_setpoint_variation[3], self.max_setpoint_variation[3])
         # 3. Add the correction to the drone_command
 
-        self.drone_command.rcRoll= self.cmd_equlibrium_value + self.drone_cmd_correction_term[0]
-        self.drone_command.rcPitch= self.cmd_equlibrium_value + self.drone_cmd_correction_term[1]
-        self.drone_command.rcThrottle= self.cmd_equlibrium_value + self.drone_cmd_correction_term[3]
+        self.drone_command.rcRoll= self.cmd_equilibrium_value + self.drone_cmd_correction_term[0]
+        self.drone_command.rcPitch= self.cmd_equilibrium_value + self.drone_cmd_correction_term[1]
 
 
-        print(self.cmd_equlibrium_value + self.drone_cmd_correction_term[3])
 
 
+
+        self.throttle_prev_error= self.throttle_pid_error[0]
 
 
         self.edrone_cmd_pub.publish(self.drone_command)
