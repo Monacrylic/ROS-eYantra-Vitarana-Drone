@@ -200,7 +200,7 @@ class Edrone():
 
         #integral error and Step9 as well
         for i in range(3):
-            self.i_error[i]+= self.sample_time * self.p_error[i]
+            self.i_error[i]+= self.p_error[i]
 
         #Step 5 calculating PID
         self.out_roll= self.Kp[0] * self.p_error[0] + self.Ki[0] * self.i_error[0] + self.Kd[0] * self.d_error[0]
@@ -217,7 +217,7 @@ class Edrone():
         self.pwm_cmd.prop3=self.throttle_pwm + self.out_roll - self.out_yaw - self.out_pitch
         self.pwm_cmd.prop4=self.throttle_pwm + self.out_roll + self.out_yaw + self.out_pitch
 
-        #Step 7 Limit the values (NEEDS CODE OPTIMIZATION! @MANOHAR)
+        #Step 7
 
         def clamp(n, minn = self.min_values[0], maxn = self.max_values[0]):
             if n < minn:
