@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 '''
 This the Position contoller for task1
-TODO: Tune PID!
+Ranges-
+Latitude -> -90 to 90
+Longitude -> -180 t0 180
 '''
 from vitarana_drone.msg import *
 from pid_tune.msg import PidTune
@@ -27,17 +29,31 @@ class Edrone():
         #(latitude, longitude, altitude)
         self.drone_gps_setpoint = [0.0, 0.0, 1]
 
+        # RPY setpoint correction term
+        #This term is aded to the setpoint for RPY and throttle
+        #(roll, pitch, yaw, throttle)
+        self.drone_cmd_correction_term=[0.0, 0.0 , 0.0, 0.0]
+
+        #max variation in any of the setpoints
+        #must not be too high else the drone would topple
+        # (roll, pitch , yaw, throttle)
+        self.max_setpoint_variation= [10.0, 10.0, 10.0, 10.0]
+
         # Error in position = setpoint - current location
         #(latitude, longitude, altitude)
         self.position_error= [0.0, 0.0, 0.0]
 
+        # Equilibrium value
+
+        self.cmd_equlibrium_value= 1500
+
         #Drone Command
 
         self.drone_command= edrone_cmd()
-        self.drone_command.rcPitch=0.0
-        self.drone_command.rcRoll=0.0
-        self.drone_command.rcYaw=0.0
-        self.drone_command.rcThrottle=0.0
+        self.drone_command.rcPitch=1500.0
+        self.drone_command.rcRoll=1500.0
+        self.drone_command.rcYaw=1500.0
+        self.drone_command.rcThrottle=1500.0
 
         # Subscriptions----------------------------------------------------------
         rospy.Subscriber('/edrone/gps', NavSatFix, self.drone_gps_callback)
@@ -59,16 +75,33 @@ class Edrone():
         for i in range(0,3):
             self.position_error[i]= self.drone_gps_setpoint[i] - self.drone_gps_coordinates[i]
 
-        # 2. Move the drone to neutralize the error
 
-        self.drone_command.rcRoll= 1500;
-        self.drone_command.rcPitch= 1500;
-        self.drone_command.rcYaw= 1500;
+        # 2. Calculate correction terms
 
-        if(self.position_error[2]< 0):
-            self.drone_command.rcThrottle=1495
-        else:
-            self.drone_command.rcThrottle= 1505
+        def clamp(n, minn, maxn):
+            if n < minn:
+                return minn
+            elif n > maxn:
+                return maxn
+            else:
+                return n
+
+        #Roll
+        self.drone_cmd_correction_term[0]= clamp(self.position_error[0]*10 ,-1 * self.max_setpoint_variation[0], self.max_setpoint_variation[0])
+        #Pitch
+        self.drone_cmd_correction_term[1]= clamp(self.position_error[1]*10 ,-1 * self.max_setpoint_variation[1], self.max_setpoint_variation[1])
+        #throttle
+        self.drone_cmd_correction_term[3]= clamp(self.position_error[2]*100 ,-1 * self.max_setpoint_variation[3], self.max_setpoint_variation[3])
+        # 3. Add the correction to the drone_command
+
+        self.drone_command.rcRoll= self.cmd_equlibrium_value + self.drone_cmd_correction_term[0]
+        self.drone_command.rcPitch= self.cmd_equlibrium_value + self.drone_cmd_correction_term[1]
+        self.drone_command.rcThrottle= self.cmd_equlibrium_value + self.drone_cmd_correction_term[3]
+
+
+        print(self.cmd_equlibrium_value + self.drone_cmd_correction_term[3])
+
+
 
 
         self.edrone_cmd_pub.publish(self.drone_command)
