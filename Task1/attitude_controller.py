@@ -65,9 +65,15 @@ class Edrone():
 
         # initial setting of Kp, Kd and ki for [roll, pitch, yaw]. eg: self.Kp[2] corresponds to Kp value in yaw axis
         # after tuning and computing corresponding PID parameters, change the parameters
-        self.Kp = [0, 0, 0]
-        self.Ki = [0, 0, 0]
-        self.Kd = [0, 0, 0]
+        self.Kp = [6.97, 6.97 , 4.5]
+        self.Ki = [0.0, 0.0 ,0.0]
+        self.Kd = [500, 500, 0.0]
+
+        # Prescalers
+
+        self.prescaler= [10, 10 ,100]
+
+
         # -----------------------Add other required variables for pid here ----------------------------------------------
         #
         self.prev_error= [0, 0, 0]
@@ -92,7 +98,7 @@ class Edrone():
         # ----------------------------------------------------------------------------------------------------------
 
         # # This is the sample time in which you need to run pid. Choose any time which you seem fit. Remember the stimulation step time is 50 ms
-        self.sample_time = 0.50  # in seconds
+        self.sample_time = 10  # in hertz
 
         # Publishing /edrone/pwm, /roll_error, /pitch_error, /yaw_error
         self.pwm_pub = rospy.Publisher('/edrone/pwm', prop_speed, queue_size=1)
@@ -196,11 +202,11 @@ class Edrone():
 
         #derivative error
         for i in range(3):
-            self.d_error[i] = (self.p_error[i] - self.prev_error[i])
+            self.d_error[i] = (self.p_error[i] - self.prev_error[i])/self.sample_time
 
         #integral error and Step9 as well
         for i in range(3):
-            self.i_error[i]+= self.p_error[i]
+            self.i_error[i]+= self.p_error[i]*self.sample_time
 
         #Step 5 calculating PID
         self.out_roll= self.Kp[0] * self.p_error[0] + self.Ki[0] * self.i_error[0] + self.Kd[0] * self.d_error[0]
@@ -212,10 +218,10 @@ class Edrone():
         self.yaw_error.publish(self.out_yaw)
 
 
-        self.pwm_cmd.prop1=self.throttle_pwm - self.out_roll - self.out_yaw + self.out_pitch
-        self.pwm_cmd.prop2=self.throttle_pwm - self.out_roll + self.out_yaw - self.out_pitch
-        self.pwm_cmd.prop3=self.throttle_pwm + self.out_roll - self.out_yaw - self.out_pitch
-        self.pwm_cmd.prop4=self.throttle_pwm + self.out_roll + self.out_yaw + self.out_pitch
+        self.pwm_cmd.prop1=self.throttle_pwm + self.prescaler[0]*self.out_roll - self.prescaler[2]*self.out_yaw - self.prescaler[1]*self.out_pitch
+        self.pwm_cmd.prop2=self.throttle_pwm - self.prescaler[0]*self.out_roll + self.prescaler[2]*self.out_yaw - self.prescaler[1]*self.out_pitch
+        self.pwm_cmd.prop3=self.throttle_pwm - self.prescaler[0]*self.out_roll - self.prescaler[2]*self.out_yaw + self.prescaler[1]*self.out_pitch
+        self.pwm_cmd.prop4=self.throttle_pwm + self.prescaler[0]*self.out_roll + self.prescaler[2]*self.out_yaw + self.prescaler[1]*self.out_pitch
 
         #Step 7
 
