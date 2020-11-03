@@ -112,9 +112,9 @@ class Edrone():
         # Subscribing to /drone_command, imu/data, /pid_tuning_roll, /pid_tuning_pitch, /pid_tuning_yaw
         rospy.Subscriber('/drone_command', edrone_cmd, self.drone_command_callback)
         rospy.Subscriber('/edrone/imu/data', Imu, self.imu_callback)
-        rospy.Subscriber('/pid_tuning_roll', PidTune, self.roll_set_pid)
-        rospy.Subscriber('/pid_tuning_pitch', PidTune, self.pitch_set_pid)
-        rospy.Subscriber('/pid_tuning_yaw', PidTune, self.yaw_set_pid)
+        # rospy.Subscriber('/pid_tuning_roll', PidTune, self.roll_set_pid)
+        # rospy.Subscriber('/pid_tuning_pitch', PidTune, self.pitch_set_pid)
+        # rospy.Subscriber('/pid_tuning_yaw', PidTune, self.yaw_set_pid)
         # -------------------------Add other ROS Subscribers here----------------------------------------------------
         # ------------------------------------------------------------------------------------------------------------
 
@@ -146,21 +146,21 @@ class Edrone():
 
     # Callback function for /pid_tuning_roll
     # This function gets executed each time when /tune_pid publishes /pid_tuning_roll
-    def roll_set_pid(self, roll):
-        self.Kp[0] = roll.Kp * 0.06  # This is just for an example. You can change the ratio/fraction value accordingly
-        self.Ki[0] = roll.Ki * 0.008
-        self.Kd[0] = roll.Kd * 0.3
-
-    # ----------------------------Define callback function like roll_set_pid to tune pitch, yaw--------------
-    def pitch_set_pid(self, pitch):
-        self.Kp[1] = pitch.Kp * 0.06  # This is just for an example. You can change the ratio/fraction value accordingly
-        self.Ki[1] = pitch.Ki * 0.008
-        self.Kd[1] = pitch.Kd * 0.3
-
-    def yaw_set_pid(self, yaw):
-        self.Kp[2] = yaw.Kp * 0.06  # This is just for an example. You can change the ratio/fraction value accordingly
-        self.Ki[2] = yaw.Ki * 0.008
-        self.Kd[2] = yaw.Kd * 0.3
+    # def roll_set_pid(self, roll):
+    #     self.Kp[0] = roll.Kp * 0.06  # This is just for an example. You can change the ratio/fraction value accordingly
+    #     self.Ki[0] = roll.Ki * 0.008
+    #     self.Kd[0] = roll.Kd * 0.3
+    #
+    # # ----------------------------Define callback function like roll_set_pid to tune pitch, yaw--------------
+    # def pitch_set_pid(self, pitch):
+    #     self.Kp[1] = pitch.Kp * 0.06  # This is just for an example. You can change the ratio/fraction value accordingly
+    #     self.Ki[1] = pitch.Ki * 0.008
+    #     self.Kd[1] = pitch.Kd * 0.3
+    #
+    # def yaw_set_pid(self, yaw):
+    #     self.Kp[2] = yaw.Kp * 0.06  # This is just for an example. You can change the ratio/fraction value accordingly
+    #     self.Ki[2] = yaw.Ki * 0.008
+    #     self.Kd[2] = yaw.Kd * 0.3
     # ----------------------------------------------------------------------------------------------------------------------
 
     def pid(self):
