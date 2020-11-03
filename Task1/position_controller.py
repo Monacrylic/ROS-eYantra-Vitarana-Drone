@@ -60,7 +60,7 @@ class Edrone():
         #Roll, pitch, yaw, throttle
         self.kp= [699, 699, 0.0, 10.92]
         self.ki= [0.0, 0.0, 0.0, 0.0]
-        self.kd= [3488, 3406, 0.0, 100]
+        self.kd= [3400, 3406, 0.0, 100]
 
 
         # Prescalers
@@ -87,11 +87,11 @@ class Edrone():
 
         # Drone command Min Values
         #( roll, pitch, yaw, throttle)
-        self.drone_cmd_min= [1300, 1300, 0, 1000]
+        self.drone_cmd_min= [1400, 1400, 0, 1000]
 
         # Drone command Max Values
         #( roll, pitch, yaw, throttle)
-        self.drone_cmd_max= [1700, 1700, 0, 2000]
+        self.drone_cmd_max= [1600, 1600, 0, 2000]
 
         # Subscriptions----------------------------------------------------------
         rospy.Subscriber('/edrone/gps', NavSatFix, self.drone_gps_callback)
